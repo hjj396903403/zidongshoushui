@@ -1,0 +1,167 @@
+C51 COMPILER V9.00   MAIN                                                                  02/20/2014 20:09:53 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN main.OBJ
+COMPILER INVOKED BY: e:\Keil\C51\BIN\C51.EXE main.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          #include"iic.h"
+   2          #include<reg52.h>
+   3          uchar code tabel1[]={0x3f,0x06,0x5b,0x4f,0x66,0x6d,0x7d,0x07,0x7f,0x6f,0xbf,0x86,0xdb,0xcf,0xe6,0xed,0xfd,
+             -0x87,0xff,0xef,0x00};
+   4          uchar code tabel2[]={0xfe,0xfd,0xfb,0xf7,0xef,0xdf,0xbf,0x7f};
+   5          
+   6          sbit jidianqi=P2^5;
+   7          sbit la=P2^7;
+   8          sbit key1=P3^0;
+   9          sbit key2=P3^1;
+  10          sbit l1=P2^6;
+  11          uchar state;
+  12          uchar d[8];
+  13          uint v,s,q,guang;
+  14          
+  15          
+  16          
+  17          void delay_50us(uchar a)
+  18          {
+  19   1              uchar j;
+  20   1              for(;a>0;a--)
+  21   1              for(j=19;j>0;j--);
+  22   1      }
+  23          void display()
+  24          {
+  25   1              uchar i;
+  26   1              if(state==1)
+  27   1              {
+  28   2                      d[0]=20;
+  29   2                      d[1]=10;
+  30   2                      d[2]=5;
+  31   2                      d[3]=0;
+  32   2                      d[4]=v/1000;
+  33   2                      d[5]=v%1000/100+10;
+  34   2                      d[6]=v%100/10;
+  35   2                      d[7]=v%10;        
+  36   2              } 
+  37   1              if(state==0)
+  38   1              {
+  39   2                      d[0]=20;
+  40   2                      d[1]=10;
+  41   2                      d[2]=5;
+  42   2                      d[3]=0;
+  43   2                      d[4]=q/1000;
+  44   2                      d[5]=q%1000/100+10;
+  45   2                      d[6]=q%100/10;
+  46   2                      d[7]=q%10;
+  47   2              }
+  48   1              for(i=0;i<8;i++)
+  49   1              {
+  50   2                      P0=tabel1[d[i]];
+  51   2                      P1=tabel2[i];
+  52   2                      delay_50us(20);
+  53   2              }
+  54   1      }
+C51 COMPILER V9.00   MAIN                                                                  02/20/2014 20:09:53 PAGE 2   
+
+  55          void key()
+  56          {
+  57   1              if(key1==0)
+  58   1              {
+  59   2                      delay_50us(200);
+  60   2                      if(key1==0)
+  61   2                      {
+  62   3                              state=1;
+  63   3                              jidianqi=0;
+  64   3                              la=0;
+  65   3                              s=0;            
+  66   3                              TR0=1;
+  67   3                              while(!key1)
+  68   3                              {
+  69   4                              display();
+  70   4                              }                        
+  71   3                  }
+  72   2              }  
+  73   1                                      v=5*s;
+  74   1                                      v=v/10;
+  75   1                                      q=v*0.5;
+  76   1                                      display();
+  77   1                                      if(v>9999)
+  78   1                                      {
+  79   2                                              state=0;
+  80   2                                              jidianqi=1;
+  81   2                                      }               
+  82   1      
+  83   1                 if(key2==0)
+  84   1                              {
+  85   2                                      delay_50us(200);
+  86   2                                      if(key2==0)
+  87   2                                      {
+  88   3                                              state=0;
+  89   3                                              jidianqi=1;
+  90   3                                              la=1;                           
+  91   3                                              TR0=0;
+  92   3                                              v=5*s;
+  93   3                                              v=v/10;
+  94   3                                              q=v*0.5;
+  95   3                                      
+  96   3                                              while(!key2) display();
+  97   3      
+  98   3                                      }
+  99   2                      
+ 100   2                              }
+ 101   1      }
+ 102          
+ 103          void main()
+ 104          {
+ 105   1              init();
+ 106   1              TMOD=0x01;
+ 107   1              EA=1;
+ 108   1              ET0=1;
+ 109   1              TH0=(65536-50000)/256;
+ 110   1              TL0=(65536-50000)%256;
+ 111   1              state=0;
+ 112   1              v=0;
+ 113   1              jidianqi=1;
+ 114   1              la=1;
+ 115   1              channel(0x42);
+ 116   1              while(1)
+C51 COMPILER V9.00   MAIN                                                                  02/20/2014 20:09:53 PAGE 3   
+
+ 117   1              {
+ 118   2                      guang=read_adc();
+ 119   2                      guang=guang*1.9608;
+ 120   2                      if(guang<125)
+ 121   2                      {
+ 122   3                              l1=0;
+ 123   3                      }
+ 124   2                      else 
+ 125   2                      {
+ 126   3                              l1=1;
+ 127   3                      }
+ 128   2                      key();
+ 129   2              
+ 130   2                      display();
+ 131   2              }
+ 132   1      
+ 133   1      }
+ 134          void shi () interrupt 1
+ 135          {
+ 136   1              TH0=(65536-50000)/256;
+ 137   1              TL0=(65536-50000)%256;
+ 138   1              s++;
+ 139   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    524    ----
+   CONSTANT SIZE    =     29    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     17    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
